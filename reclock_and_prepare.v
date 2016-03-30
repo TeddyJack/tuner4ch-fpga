@@ -12,7 +12,7 @@ output [7:0] DATA_OUT
 );
 
 wire fifo_wr_req = (P_SYNC | psync_188_after) & D_VALID;
-assign GOT_FULL_PACKET = (fifo_used >= 188);
+assign GOT_FULL_PACKET = (fifo_used >= 9'd188);
 input_fifo input_fifo(
 .aclr(!RST | short_sync_lost),
 .data(DATA),
@@ -23,7 +23,7 @@ input_fifo input_fifo(
 .q(DATA_OUT),
 .rdusedw(fifo_used)
 );
-wire [9:0] fifo_used;
+wire [8:0] fifo_used;
 
 reg state;
 parameter idle				= 1'b0;
@@ -49,7 +49,7 @@ else
 			end
 	read_packet:
 		begin
-		if(read_counter < 188)
+		if(read_counter < 8'd188)
 			read_counter <= read_counter + 1'b1;
 		else
 			begin
@@ -88,10 +88,10 @@ else
 		end
 	else if(psync_188_after)
 		begin
-		if(psync_byte_counter < 188)
+		if(psync_byte_counter < 8'd188)
 			begin
 			psync_byte_counter <= psync_byte_counter + 1'b1;
-			if(psync_byte_counter == 187)
+			if(psync_byte_counter == 8'd187)
 				psync_188_after <= 0;
 			end
 		else
@@ -104,6 +104,6 @@ else
 	end
 end
 
-wire sync_lost = (((psync_byte_counter == 188) && (P_SYNC == 0)) || ((P_SYNC == 1) && (psync_byte_counter != 188) && (psync_byte_counter != 0)));
+wire sync_lost = (((psync_byte_counter == 8'd188) && (P_SYNC == 1'b0)) || ((P_SYNC == 1'b1) && (psync_byte_counter != 8'd188) && (psync_byte_counter != 1'b0)));
 	
 endmodule

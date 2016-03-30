@@ -45,7 +45,7 @@ pll_for_ts_muxer pll_for_ts_muxer(
 wire sys_clk;
 wire clk_27;
 
-reclock_and_prep_via_rams reclock_and_prepare_0(
+reclock_and_prepare reclock_and_prepare_0(
 .SYS_CLK(sys_clk),
 .RST(RST),
 .DATA(DATA_0),
@@ -59,7 +59,7 @@ reclock_and_prep_via_rams reclock_and_prepare_0(
 );
 wire [7:0] data_out_0;
 
-reclock_and_prep_via_rams reclock_and_prepare_1(
+reclock_and_prepare reclock_and_prepare_1(
 .SYS_CLK(sys_clk),
 .RST(RST),
 .DATA(DATA_1),
@@ -73,7 +73,7 @@ reclock_and_prep_via_rams reclock_and_prepare_1(
 );
 wire [7:0] data_out_1;
 
-reclock_and_prep_via_rams reclock_and_prepare_2(
+reclock_and_prepare reclock_and_prepare_2(
 .SYS_CLK(sys_clk),
 .RST(RST),
 .DATA(DATA_2),
@@ -87,7 +87,7 @@ reclock_and_prep_via_rams reclock_and_prepare_2(
 );
 wire [7:0] data_out_2;
 
-reclock_and_prep_via_rams reclock_and_prepare_3(
+reclock_and_prepare reclock_and_prepare_3(
 .SYS_CLK(sys_clk),
 .RST(RST),
 .DATA(DATA_3),

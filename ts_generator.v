@@ -10,7 +10,7 @@ output reg P_SYNC
 );
 
 assign D_CLK = CLK;
-assign D_VALID = 1;
+assign D_VALID = 1'b1;
 
 reg [7:0] byte_counter;
 reg [3:0] contin_counter;
@@ -23,7 +23,7 @@ if(!RST)
 	end
 else
 	begin
-	if(byte_counter < 187)
+	if(byte_counter < 8'd187)
 		byte_counter <= byte_counter + 1'b1;
 	else
 		begin
@@ -41,24 +41,24 @@ if(!RST)
 	DATA <= 0;
 	end
 else
-	case(byte_counter)
-	0:	begin
+	begin
+	if(byte_counter == 8'd0)
+		begin
 		P_SYNC <= 1;
 		DATA <= 8'h47;
 		end
-	1:	begin
+	else if(byte_counter == 8'd1)
+		begin
 		P_SYNC <= 0;
 		DATA <= PID[12:8];
 		end
-	2:	begin
+	else if(byte_counter == 8'd2)
 		DATA <= PID[7:0];
-		end
-	3:	begin
+	else if(byte_counter == 8'd3)
 		DATA <= 8'h10 + contin_counter;		// 8'h10 is mask for payload flag
-		end
-	default:
+	else
 		DATA <= PID[7:0];
-	endcase
+	end
 end
 
 endmodule

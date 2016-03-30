@@ -15,14 +15,12 @@ the_pll the_pll(
 .c0(clk_ts_0),
 .c1(clk_ts_1),
 .c2(clk_ts_2),
-.c3(clk_ts_3),
-.c4(ext_clk)
+.c3(clk_ts_3)
 );
 wire clk_ts_0;
 wire clk_ts_1;
 wire clk_ts_2;
 wire clk_ts_3;
-wire ext_clk;
 
 ts_generator ts_gen_0(
 .CLK(clk_ts_0),
@@ -85,7 +83,7 @@ wire d_valid_3;
 wire p_sync_3;
 
 ts_muxer ts_muxer(
-.EXT_CLK_IN(ext_clk),
+.EXT_CLK_IN(BOARD_CLK),
 .RST(rst),
 
 .DATA_0(data_0),
@@ -113,6 +111,11 @@ ts_muxer ts_muxer(
 .D_VALID_OUT(D_VALID_OUT),
 .P_SYNC_OUT(P_SYNC_OUT)
 );
+// testing
+//assign DATA_OUT = data_0;
+//assign DCLK_OUT = d_clk_0;
+//assign D_VALID_OUT = d_valid_0;
+//assign P_SYNC_OUT = p_sync_0;
 
 
 endmodule

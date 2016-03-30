@@ -75,22 +75,22 @@ else
 		begin
 		DATA_OUT <= header_3d_array[source_counter][byte_counter];
 		byte_counter <= byte_counter + 1'b1;
-		if(byte_counter == 0)
+		if(byte_counter == 8'd0)
 			D_VALID_OUT <= 1;
-		else if(byte_counter == 1)
+		else if(byte_counter == 8'd1)
 			GIVE_ME_ONE_PACKET[source_counter] <= 1; // чтобы ts пакет попал сразу после псевдо-заголовка, запрос на пакет надо выдать здесь
-		else if(byte_counter == 3)
+		else if(byte_counter == 8'd3)
 			state <= forward_packet;
 		else
 			GIVE_ME_ONE_PACKET[source_counter] <= 0;
 		end
 	forward_packet:
 		begin
-		if(byte_counter < 192)
+		if(byte_counter < 8'd192)
 			begin
 			DATA_OUT <= DATA_IN_BUS[source_counter];
 			byte_counter <= byte_counter + 1'b1;
-			if(byte_counter == 4)
+			if(byte_counter == 8'd4)
 				P_SYNC_OUT <= 1;
 			else
 				P_SYNC_OUT <= 0;
