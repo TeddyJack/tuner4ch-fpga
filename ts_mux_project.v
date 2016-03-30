@@ -1,7 +1,7 @@
 module ts_mux_project(
-input CLK_50,
-input BTN_0,
-input BTN_1,
+input BOARD_CLK,
+//input BTN_0,
+//input BTN_1,
 output [7:0] DATA_OUT,
 output DCLK_OUT,
 output D_VALID_OUT,
@@ -11,7 +11,7 @@ output P_SYNC_OUT
 wire rst = /*BTN_0*/1;
 
 the_pll the_pll(
-.inclk0(CLK_50),
+.inclk0(BOARD_CLK),
 .c0(clk_ts_0),
 .c1(clk_ts_1),
 .c2(clk_ts_2),

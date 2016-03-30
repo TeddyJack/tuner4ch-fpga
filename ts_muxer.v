@@ -1,7 +1,7 @@
 module ts_muxer(
 input EXT_CLK_IN,		// 25 or 41 or 16 MHz
 input RST,
-input [1:0] SWITCH,	// jumpers
+//input [1:0] SWITCH,	// jumpers
 
 input SCLK,
 input SS_inv,
@@ -30,10 +30,10 @@ input P_SYNC_3,
 output [7:0] DATA_OUT,
 output DCLK_OUT,
 output reg D_VALID_OUT,
-output P_SYNC_OUT,
+output P_SYNC_OUT
 
-output [4:0] LEDS,
-output MISO
+//output [4:0] LEDS,
+//output MISO
 
 );
 
