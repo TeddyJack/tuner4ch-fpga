@@ -1,0 +1,10 @@
+PLL_Name	the_pll:the_pll|altpll:altpll_component|the_pll_altpll:auto_generated|pll1
+PLLJITTER	NA
+PLLSPEmax	84
+PLLSPEmin	-53
+
+PLL_Name	ts_muxer:ts_muxer|pll_for_ts_muxer:pll_for_ts_muxer|altpll:altpll_component|pll_for_ts_muxer_altpll:auto_generated|pll1
+PLLJITTER	30
+PLLSPEmax	84
+PLLSPEmin	-53
+
