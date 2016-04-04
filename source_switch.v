@@ -1,5 +1,7 @@
 // для своевременного вычитывания пакетов из буферов, необходимо, чтобы F_read >= (4 x F_write_max), а лучше (5 x F_write_max)
 
+`include "defines.v"
+
 module source_switch(		// здесь сформировать give_me_one_packet для каждого источника
 input SYS_CLK,
 input RST,
@@ -8,6 +10,10 @@ input [7:0] DATA_IN_0,
 input [7:0] DATA_IN_1,
 input [7:0] DATA_IN_2,
 input [7:0] DATA_IN_3,
+
+input [7:0] SPI_ADDRESS,
+input [7:0] SPI_DATA,
+input RISING_SS,
 
 output reg [3:0] GIVE_ME_ONE_PACKET,
 
@@ -66,7 +72,6 @@ else
 		if(GOT_FULL_PACKET[source_counter])
 			begin
 			state <= fill_header;
-			header_3d_array[source_counter][2] <= 0;
 			end
 		else
 			source_counter <= source_counter + 1'b1;
@@ -106,5 +111,18 @@ else
 		end
 	endcase
 end
+
+always@(posedge SYS_CLK or negedge RST)
+begin
+if(!RST)
+	begin
+	
+	end
+else if(RISING_SS && (SPI_ADDRESS >= `ADDR_HEADR_FIRST) && (SPI_ADDRESS <= `ADDR_HEADR_LAST))
+	begin
+	header_3d_array[(SPI_ADDRESS-`ADDR_HEADR_FIRST) >> 2][SPI_ADDRESS - ((SPI_ADDRESS-`ADDR_HEADR_FIRST) >> 2)] <= SPI_DATA;				// src = floor((SPI_ADDRESS-`ADDR_HEADR_FIRST) / 4);				byte = residue((SPI_ADDRESS-`ADDR_HEADR_FIRST) / 4)
+	end
+end
+
 
 endmodule

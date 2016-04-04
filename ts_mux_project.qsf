@@ -175,5 +175,7 @@ set_location_assignment PIN_76 -to D_VALID_OUT
 set_location_assignment PIN_77 -to P_SYNC_OUT
 set_global_assignment -name CDF_FILE output_files/output_files/Chain3.cdf
 set_location_assignment PIN_25 -to BOARD_CLK
-set_global_assignment -name SLD_FILE "C:/Users/TeddyJack/ts_mux_project/output_files/stp1_auto_stripped.stp"
+set_global_assignment -name VERILOG_FILE select_output.v
+set_global_assignment -name VERILOG_FILE defines.v
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name SLD_FILE "C:/Users/TeddyJack/ts_mux_project/output_files/stp1_auto_stripped.stp"

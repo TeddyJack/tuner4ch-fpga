@@ -1,0 +1,3 @@
+`define ADDR_OUT_SELECT		8'h01
+`define ADDR_HEADR_FIRST	8'h02
+`define ADDR_HEADR_LAST		8'h11

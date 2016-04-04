@@ -4,7 +4,7 @@ input RST,
 //input [1:0] SWITCH,	// jumpers
 
 input SCLK,
-input SS_inv,
+input nSS,
 input MOSI,
 
 input [7:0] DATA_0,
@@ -30,10 +30,10 @@ input P_SYNC_3,
 output [7:0] DATA_OUT,
 output DCLK_OUT,
 output reg D_VALID_OUT,
-output P_SYNC_OUT
+output P_SYNC_OUT,
 
 //output [4:0] LEDS,
-//output MISO
+output MISO
 
 );
 
@@ -126,12 +126,12 @@ wire p_sync_out_54;
 
 
 out_fifo out_fifo(
-.aclr(!RST),
-.data({p_sync_out_54,data_out_54}),
+.aclr((!RST) || (reset_on_change_out)),				// not sure we need this extra reset
+.data({p_sync_from_selector,data_from_selector}),
 .rdclk(clk_27),
 .rdreq(!fifo_empty),
-.wrclk(dclk_out_54),
-.wrreq(d_valid_out_54),
+.wrclk(dclk_from_selector),
+.wrreq(d_valid_from_selector),
 .q({P_SYNC_OUT,DATA_OUT}),
 .rdempty(fifo_empty),
 .wrusedw()
@@ -146,5 +146,50 @@ if(!RST)
 else
 	D_VALID_OUT <= !fifo_empty;
 end
+
+SPI SPI(
+.CLK(sys_clk),
+.RST(RST),
+.SCLK(SCLK),
+.MOSI(MOSI),
+.SS(!nSS),
+
+.SPI_ADDRESS(spi_address),
+.SPI_DATA(spi_data),
+.RISING_SS(rising_ss),
+.MISO(MISO)
+);
+wire [7:0] spi_address;
+wire [7:0] spi_data;
+wire rising_ss;
+
+select_output select_output(
+.CLK(sys_clk),
+.RST(RST),
+.SPI_ADDRESS(spi_address),
+.SPI_DATA(spi_data),
+.RISING_SS(rising_ss),
+
+.DATA_IN_0(DATA_0),
+.DATA_IN_1(DATA_1),
+.DATA_IN_2(DATA_2),
+.DATA_IN_3(DATA_3),
+.DATA_MUXED(data_out_54),
+.DCLK_BUS({dclk_out_54,DCLK_3,DCLK_2,DCLK_1,DCLK_0}),
+.D_VALID_BUS({d_valid_out_54,D_VALID_3,D_VALID_2,D_VALID_1,D_VALID_0}),
+.P_SYNC_BUS({p_sync_out_54,P_SYNC_3,P_SYNC_2,P_SYNC_1,P_SYNC_0}),
+
+.DATA_OUT(data_from_selector),
+.DCLK_OUT(dclk_from_selector),
+.D_VALID_OUT(d_valid_from_selector),
+.P_SYNC_OUT(p_sync_from_selector),
+
+.RESET_ON_CHANGE_OUT(reset_on_change_out)
+);
+wire [7:0] data_from_selector;
+wire dclk_from_selector;
+wire d_valid_from_selector;
+wire p_sync_from_selector;
+wire reset_on_change_out;
 
 endmodule

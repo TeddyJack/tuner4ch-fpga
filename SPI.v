@@ -1,34 +1,34 @@
 //`include "defines.v"
 
 module SPI(
-input clk,
-input rst,
-input sclk,
-input mosi,
-input ss,
+input CLK,
+input RST,
+input SCLK,
+input MOSI,
+input SS,
 input [7:0] data_to_pc,
 input [7:0] address_to_pc,
 
-output miso,
-output [7:0] data,
-output [7:0] address,
-output rising_ss,
-output falling_ss,
+output MISO,
+output [7:0] SPI_DATA,
+output [7:0] SPI_ADDRESS,
+output RISING_SS,
+//output falling_ss,
 output send_to_pc_request,
 //
 input [1:0] acknowledge
 );
-assign miso = shift_reg_out[15];
-assign data		= shift_reg_in[15:8];
-assign address	= shift_reg_in[7:0];
+assign MISO = shift_reg_out[15];
+assign SPI_DATA		= shift_reg_in[15:8];
+assign SPI_ADDRESS	= shift_reg_in[7:0];
 
 reg sync_sclk;
 reg sync_ss;
 reg sync_mosi;
 reg load_flag;
-always@(posedge clk or negedge rst)
+always@(posedge CLK or negedge RST)
 begin
-if(!rst)
+if(!RST)
 	begin
 	sync_ss <= 1;
 	sync_sclk <= 0;
@@ -37,17 +37,17 @@ if(!rst)
 	end
 else
 	begin
-	sync_ss <= ss;
-	sync_sclk <= sclk;
-	sync_mosi <= mosi;
-	load_flag <= falling_ss;
+	sync_ss <= SS;
+	sync_sclk <= SCLK;
+	sync_mosi <= MOSI;
+	load_flag <= /*falling_ss*/0;
 	end
 end
 
 reg [15:0] shift_reg_out;
-always@(posedge clk or negedge rst)
+always@(posedge CLK or negedge RST)
 begin
-if(!rst)
+if(!RST)
 	begin
 	shift_reg_out	<= 0;
 	end
@@ -66,9 +66,9 @@ else if(!sync_ss)
 end
 
 reg [15:0] shift_reg_in;
-always@(posedge clk or negedge rst)
+always@(posedge CLK or negedge RST)
 begin
-if(!rst)
+if(!RST)
 	begin
 	shift_reg_in <= 0;
 	end
@@ -79,22 +79,21 @@ else if(!sync_ss & short_sclk)
 	end
 end
 
-rise_fall_pulse_maker rfss(
-.CLOCK(clk),
-.RESET(rst),
+rising_edge_detect rising_edge_detect_0(
+.CLOCK(CLK),
+.RESET(RST),
 .LONG_SIGNAL(sync_ss),
-.FALLING_EDGE_PULSE(falling_ss),
-.RISING_EDGE_PULSE(rising_ss)
+.RISING_EDGE_PULSE(RISING_SS)
 );
 
-rise_fall_pulse_maker rising_sclk(
-.CLOCK(clk),
-.RESET(rst),
+rising_edge_detect rising_edge_detect_1(
+.CLOCK(CLK),
+.RESET(RST),
 .LONG_SIGNAL(sync_sclk),
 .RISING_EDGE_PULSE(short_sclk)
 );
 wire short_sclk;
 
-//assign send_to_pc_request = ((rising_ss) && (address == `READ_REQ_ADDR));		// this define is absent
+//assign send_to_pc_request = ((RISING_SS) && (SPI_ADDRESS == `READ_REQ_ADDR));		// this define is absent
 
 endmodule
