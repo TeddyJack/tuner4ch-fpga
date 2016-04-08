@@ -24,18 +24,31 @@ output reg P_SYNC_OUT
 
 );
 
-reg [7:0] header_3d_array [3:0][3:0];		// 
+//reg [7:0] header_3d_array [3:0][3:0];		// 
+//reg [7:0] src;										// число, номер источника
+//initial
+//begin
+//for(src=0; src<4; src=src+1'b1)
+//	begin
+//	header_3d_array[src][0] = src;			// PLP ID
+//	header_3d_array[src][1] = src + 8'd2;	// stream source
+//	header_3d_array[src][2] = 8'h00;			// reserved
+//	header_3d_array[src][3] = 8'h00;			// reserved
+//	end
+//end
+reg [7:0] header_2d_array [15:0];		// 
 reg [7:0] src;										// число, номер источника
 initial
 begin
 for(src=0; src<4; src=src+1'b1)
 	begin
-	header_3d_array[src][0] = src;			// PLP ID
-	header_3d_array[src][1] = src + 8'd2;	// stream source
-	header_3d_array[src][2] = 8'h00;			// reserved
-	header_3d_array[src][3] = 8'h00;			// reserved
+	header_2d_array[(src<<2) + 2'h0] = src;			// PLP ID				// (<<2) = (*4)
+	header_2d_array[(src<<2) + 2'h1] = src + 8'd2;	// stream source
+	header_2d_array[(src<<2) + 2'h2] = 8'h00;			// reserved
+	header_2d_array[(src<<2) + 2'h3] = 8'h00;			// reserved
 	end
 end
+
 
 
 assign DCLK_OUT = SYS_CLK;
@@ -78,7 +91,7 @@ else
 		end
 	fill_header:
 		begin
-		DATA_OUT <= header_3d_array[source_counter][byte_counter];
+		DATA_OUT <= header_2d_array[(source_counter<<2) + byte_counter];	// (<<2) = (*4)
 		byte_counter <= byte_counter + 1'b1;
 		if(byte_counter == 8'd0)
 			D_VALID_OUT <= 1;
@@ -112,16 +125,10 @@ else
 	endcase
 end
 
-always@(posedge SYS_CLK or negedge RST)
+always@(posedge SYS_CLK)
 begin
-if(!RST)
-	begin
-	
-	end
-else if(RISING_SS && (SPI_ADDRESS >= `ADDR_HEADR_FIRST) && (SPI_ADDRESS <= `ADDR_HEADR_LAST))
-	begin
-	header_3d_array[(SPI_ADDRESS-`ADDR_HEADR_FIRST) >> 2][SPI_ADDRESS - ((SPI_ADDRESS-`ADDR_HEADR_FIRST) >> 2)] <= SPI_DATA;				// src = floor((SPI_ADDRESS-`ADDR_HEADR_FIRST) / 4);				byte = residue((SPI_ADDRESS-`ADDR_HEADR_FIRST) / 4)
-	end
+if(RISING_SS && (SPI_ADDRESS >= `ADDR_HEADR_FIRST) && (SPI_ADDRESS <= `ADDR_HEADR_LAST))
+	header_2d_array[SPI_ADDRESS-`ADDR_HEADR_FIRST] <= SPI_DATA;
 end
 
 

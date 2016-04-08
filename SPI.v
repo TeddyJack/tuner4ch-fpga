@@ -14,7 +14,7 @@ output [7:0] SPI_DATA,
 output [7:0] SPI_ADDRESS,
 output RISING_SS,
 //output falling_ss,
-output send_to_pc_request,
+//output send_to_pc_request,
 //
 input [1:0] acknowledge
 );
