@@ -1,7 +1,7 @@
 module ts_muxer(
-input EXT_CLK_IN,		// 25 or 41 or 16 MHz
+input CLK_IN,		// 25 or 50 MHz
 input RST,
-//input [1:0] SWITCH,	// jumpers
+input [1:0] SW,	// jumpers
 
 input SCLK,
 input nSS,
@@ -27,18 +27,23 @@ input DCLK_3,
 input D_VALID_3,
 input P_SYNC_3,
 
-output [7:0] DATA_OUT,
+output [7:0] DATA_OUT,		// pseudo TS ouput
 output DCLK_OUT,
 output reg D_VALID_OUT,
 output P_SYNC_OUT,
 
-//output [4:0] LEDS,
+output [7:0] DATA_OUT_ASI,	// TS output to ASI transmitter, contains one of the source streams reclocked to 27 MHz
+output DCLK_OUT_ASI,
+output reg D_VALID_OUT_ASI,
+output P_SYNC_OUT_ASI,
+
+output [3:0] LEDS,
 output MISO
 
 );
 
 pll_for_ts_muxer pll_for_ts_muxer(
-.inclk0(EXT_CLK_IN),
+.inclk0(CLK_IN),
 .c0(sys_clk),
 .c1(clk_27)
 );
@@ -126,15 +131,14 @@ wire p_sync_out_54;
 
 
 out_fifo out_fifo(
-.aclr((!RST) || (reset_on_change_out)),				// not sure we need this extra reset
-.data({p_sync_from_selector,data_from_selector}),
+.aclr(!RST),
+.data({p_sync_out_54,data_out_54}),
 .rdclk(clk_27),
 .rdreq(!fifo_empty),
-.wrclk(dclk_from_selector),
-.wrreq(d_valid_from_selector),
+.wrclk(dclk_out_54),
+.wrreq(d_valid_out_54),
 .q({P_SYNC_OUT,DATA_OUT}),
-.rdempty(fifo_empty),
-.wrusedw()
+.rdempty(fifo_empty)
 );
 wire fifo_empty;
 assign DCLK_OUT = clk_27;
@@ -174,10 +178,9 @@ select_output select_output(
 .DATA_IN_1(DATA_1),
 .DATA_IN_2(DATA_2),
 .DATA_IN_3(DATA_3),
-.DATA_MUXED(data_out_54),
-.DCLK_BUS({dclk_out_54,DCLK_3,DCLK_2,DCLK_1,DCLK_0}),
-.D_VALID_BUS({d_valid_out_54,D_VALID_3,D_VALID_2,D_VALID_1,D_VALID_0}),
-.P_SYNC_BUS({p_sync_out_54,P_SYNC_3,P_SYNC_2,P_SYNC_1,P_SYNC_0}),
+.DCLK_BUS({DCLK_3,DCLK_2,DCLK_1,DCLK_0}),
+.D_VALID_BUS({D_VALID_3,D_VALID_2,D_VALID_1,D_VALID_0}),
+.P_SYNC_BUS({P_SYNC_3,P_SYNC_2,P_SYNC_1,P_SYNC_0}),
 
 .DATA_OUT(data_from_selector),
 .DCLK_OUT(dclk_from_selector),
@@ -191,5 +194,26 @@ wire dclk_from_selector;
 wire d_valid_from_selector;
 wire p_sync_from_selector;
 wire reset_on_change_out;
+
+out_fifo out_fifo_asi(
+.aclr((!RST) || (reset_on_change_out)),				// not sure we need this extra reset
+.data({p_sync_from_selector,data_from_selector}),
+.rdclk(clk_27),
+.rdreq(!fifo_asi_empty),
+.wrclk(dclk_from_selector),
+.wrreq(d_valid_from_selector),
+.q({P_SYNC_OUT_ASI,DATA_OUT_ASI}),
+.rdempty(fifo_asi_empty)
+);
+wire fifo_asi_empty;
+assign DCLK_OUT_ASI = clk_27;
+
+always@(posedge clk_27 or negedge RST)
+begin
+if(!RST)
+	D_VALID_OUT_ASI <= 0;
+else
+	D_VALID_OUT_ASI <= !fifo_empty;
+end
 
 endmodule

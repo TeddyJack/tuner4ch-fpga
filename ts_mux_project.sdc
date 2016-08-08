@@ -1,6 +1,5 @@
 # Clock constraints
-create_clock -name "BOARD_CLK" -period 27MHz [get_ports {BOARD_CLK}]
-create_clock -name "RESERVE_CLK" -period 25.175MHz [get_ports {RESERVE_CLK}]
+create_clock -name "CLK_IN" -period 25MHz [get_ports {CLK_IN}]
 
 # Automatically constrain PLL and other generated clocks
 derive_pll_clocks -create_base_clocks

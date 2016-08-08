@@ -1,3 +1,5 @@
+// this file was main before. it contains ts-generators and ts_muxer
+
 module ts_mux_project(
 input BOARD_CLK,
 input RESERVE_CLK,
@@ -84,7 +86,7 @@ wire d_valid_3;
 wire p_sync_3;
 
 ts_muxer ts_muxer(
-.EXT_CLK_IN(BOARD_CLK),
+.CLK_IN(BOARD_CLK),
 .RST(rst),
 
 .DATA_0(data_0),
