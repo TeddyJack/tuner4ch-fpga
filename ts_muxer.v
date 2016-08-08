@@ -35,7 +35,7 @@ output P_SYNC_OUT,
 output [7:0] DATA_OUT_ASI,	// TS output to ASI transmitter, contains one of the source streams reclocked to 27 MHz
 output DCLK_OUT_ASI,
 output reg D_VALID_OUT_ASI,
-output P_SYNC_OUT_ASI,
+//output P_SYNC_OUT_ASI,	// not enough pins and no need of this output
 
 output [3:0] LEDS,
 output MISO
