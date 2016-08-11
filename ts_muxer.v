@@ -35,7 +35,6 @@ output P_SYNC_OUT,
 output [7:0] DATA_OUT_ASI,	// TS output to ASI transmitter, contains one of the source streams reclocked to 27 MHz
 output DCLK_OUT_ASI,
 output reg D_VALID_OUT_ASI,
-//output P_SYNC_OUT_ASI,	// not enough pins and no need of this output
 
 output [3:0] LEDS,
 output MISO
@@ -197,16 +196,18 @@ wire reset_on_change_out;
 
 out_fifo out_fifo_asi(
 .aclr((!RST) || (reset_on_change_out)),				// not sure we need this extra reset
-.data({p_sync_from_selector,data_from_selector}),
+.data({1'b0,data_from_selector}),						// data is 9 bit wide. we replace data[8] (reserved for psync) with 0, because p_sync on the output of fifo is not needed
 .rdclk(clk_27),
 .rdreq(!fifo_asi_empty),
 .wrclk(dclk_from_selector),
 .wrreq(d_valid_from_selector),
-.q({P_SYNC_OUT_ASI,DATA_OUT_ASI}),
+.q(psync_and_dout_asi),
 .rdempty(fifo_asi_empty)
 );
 wire fifo_asi_empty;
 assign DCLK_OUT_ASI = clk_27;
+wire [8:0] psync_and_dout_asi;
+assign DATA_OUT_ASI = psync_and_dout_asi[7:0];
 
 always@(posedge clk_27 or negedge RST)
 begin
