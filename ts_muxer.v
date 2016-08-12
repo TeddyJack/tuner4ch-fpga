@@ -217,4 +217,6 @@ else
 	D_VALID_OUT_ASI <= !fifo_empty;
 end
 
+assign LEDS = got_full_packet;
+
 endmodule
