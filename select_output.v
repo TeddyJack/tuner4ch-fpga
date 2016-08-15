@@ -7,6 +7,8 @@ input [7:0] SPI_ADDRESS,
 input [7:0] SPI_DATA,
 input RISING_SS,
 
+input [1:0] SW,
+
 input [7:0] DATA_IN_0,
 input [7:0] DATA_IN_1,
 input [7:0] DATA_IN_2,
@@ -34,7 +36,9 @@ assign DCLK_OUT = DCLK_BUS[select];
 assign D_VALID_OUT = D_VALID_BUS[select];
 assign P_SYNC_OUT = P_SYNC_BUS[select];
 
-reg [1:0] select;
+wire [1:0] select = SW;						// what goes to ASI output selected by "switch"
+/*
+reg [1:0] select;							// what goes to ASI output selected by SPI control
 
 always@(posedge CLK or negedge RST)
 begin
@@ -50,5 +54,5 @@ else if(RISING_SS && (SPI_ADDRESS == `ADDR_OUT_SELECT))
 else
 	RESET_ON_CHANGE_OUT <= 1'b0;
 end
-
+*/
 endmodule

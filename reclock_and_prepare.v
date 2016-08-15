@@ -11,7 +11,7 @@ output GOT_FULL_PACKET,
 output [7:0] DATA_OUT
 );
 
-wire fifo_wr_req = (P_SYNC | psync_188_after) & D_VALID;
+wire fifo_wr_req = (P_SYNC | (!sync_lost)) & D_VALID;		// for first-ever alignment
 assign GOT_FULL_PACKET = (fifo_used >= 9'd188);
 input_fifo input_fifo(
 .aclr(!RST | short_sync_lost),
@@ -71,39 +71,46 @@ wire short_sync_lost;
 
 
 reg [7:0] psync_byte_counter;
-reg psync_188_after;
+reg sync_lost;
+reg state_of_sync;
+parameter wait_for_psync	= 1'b0;
+parameter count				= 1'b1;
 always@(posedge DCLK or negedge RST)
 begin
 if(!RST)
 	begin
+	sync_lost <= 1;
+	state_of_sync <= wait_for_psync;
 	psync_byte_counter <= 0;
-	psync_188_after <= 0;
 	end
 else
-	begin
-	if(P_SYNC)
+	case(state_of_sync)
+	wait_for_psync:
 		begin
-		psync_byte_counter <= 1;
-		psync_188_after <= 1;
+		if(P_SYNC)
+			begin
+			state_of_sync <= count;
+			sync_lost <= 0;
+			psync_byte_counter <= 1;
+			end
+		else
+			sync_lost <= 1;
 		end
-	else if(psync_188_after)
+	count:
 		begin
-		if(psync_byte_counter < 8'd188)
+		if(P_SYNC)
+			begin
+			state_of_sync <= wait_for_psync;
+			sync_lost <= 1;
+			end
+		else
 			begin
 			psync_byte_counter <= psync_byte_counter + 1'b1;
 			if(psync_byte_counter == 8'd187)
-				psync_188_after <= 0;
+				state_of_sync <= wait_for_psync;
 			end
-		else
-			psync_byte_counter <= 0;
 		end
-	else
-		begin
-		psync_byte_counter <= 0;
-		end
-	end
+	endcase
 end
 
-wire sync_lost = (((psync_byte_counter == 8'd188) && (P_SYNC == 1'b0)) || ((P_SYNC == 1'b1) && (psync_byte_counter != 8'd188) && (psync_byte_counter != 1'b0)));
-	
 endmodule

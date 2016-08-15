@@ -173,6 +173,8 @@ select_output select_output(
 .SPI_DATA(spi_data),
 .RISING_SS(rising_ss),
 
+.SW(SW),
+
 .DATA_IN_0(DATA_0),
 .DATA_IN_1(DATA_1),
 .DATA_IN_2(DATA_2),
@@ -217,6 +219,29 @@ else
 	D_VALID_OUT_ASI <= !fifo_empty;
 end
 
-assign LEDS = got_full_packet;
+led_lighter led_lighter_0(
+.CLK(sys_clk),
+.RST(RST),
+.SIGNAL_IN(give_me_one_packet[0]),
+.LED(LEDS[0])
+);
+led_lighter led_lighter_1(
+.CLK(sys_clk),
+.RST(RST),
+.SIGNAL_IN(give_me_one_packet[1]),
+.LED(LEDS[1])
+);
+led_lighter led_lighter_2(
+.CLK(sys_clk),
+.RST(RST),
+.SIGNAL_IN(give_me_one_packet[2]),
+.LED(LEDS[2])
+);
+led_lighter led_lighter_3(
+.CLK(sys_clk),
+.RST(RST),
+.SIGNAL_IN(give_me_one_packet[3]),
+.LED(LEDS[3])
+);
 
 endmodule
