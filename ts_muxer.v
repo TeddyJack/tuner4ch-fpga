@@ -216,7 +216,7 @@ begin
 if(!RST)
 	D_VALID_OUT_ASI <= 0;
 else
-	D_VALID_OUT_ASI <= !fifo_empty;
+	D_VALID_OUT_ASI <= !fifo_asi_empty;
 end
 
 led_lighter led_lighter_0(

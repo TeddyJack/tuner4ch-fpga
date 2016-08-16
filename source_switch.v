@@ -94,10 +94,9 @@ else
 		DATA_OUT <= header_2d_array[(source_counter<<2) + byte_counter];	// (<<2) = (*4)
 		byte_counter <= byte_counter + 1'b1;
 		if(byte_counter == 8'd0)
-			begin
 			D_VALID_OUT <= 1;
-			GIVE_ME_ONE_PACKET[source_counter] <= 1; // чтобы ts пакет попал сразу после псевдо-заголовка, запрос на пакет надо выдать здесь. в тестовом проекте это действие выполнялось при byte_counter == 8'd1, но на реально плате изменил на = 8'd0
-			end
+		else if(byte_counter == 8'd1)						// чтобы ts пакет попал сразу после псевдо-заголовка, запрос на пакет надо выдать здесь
+			GIVE_ME_ONE_PACKET[source_counter] <= 1;
 		else if(byte_counter == 8'd3)
 			state <= forward_packet;
 		else
