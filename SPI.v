@@ -19,8 +19,8 @@ output RISING_SS,
 input [1:0] acknowledge
 );
 assign MISO = shift_reg_out[15];
-assign SPI_DATA		= shift_reg_in[15:8];
-assign SPI_ADDRESS	= shift_reg_in[7:0];
+assign SPI_DATA		= shift_reg_in[7:0];
+assign SPI_ADDRESS	= shift_reg_in[15:8];
 
 reg sync_sclk;
 reg sync_ss;

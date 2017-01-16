@@ -115,8 +115,11 @@ source_switch source_switch(
 .DATA_IN_1(data_out_1),
 .DATA_IN_2(data_out_2),
 .DATA_IN_3(data_out_3),
-.GIVE_ME_ONE_PACKET(give_me_one_packet),
+.SPI_ADDRESS(spi_address),
+.SPI_DATA(spi_data),
+.RISING_SS(rising_ss),
 
+.GIVE_ME_ONE_PACKET(give_me_one_packet),
 .DATA_OUT(data_out_54),
 .DCLK_OUT(dclk_out_54),
 .D_VALID_OUT(d_valid_out_54),
@@ -155,7 +158,7 @@ SPI SPI(
 .RST(RST),
 .SCLK(SCLK),
 .MOSI(MOSI),
-.SS(!nSS),
+.SS(nSS),
 
 .SPI_ADDRESS(spi_address),
 .SPI_DATA(spi_data),
