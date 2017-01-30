@@ -15,7 +15,7 @@ input [7:0] SPI_ADDRESS,
 input [7:0] SPI_DATA,
 input RISING_SS,
 
-output reg [3:0] GIVE_ME_ONE_PACKET,
+output reg [3:0] RD_REQ,
 
 output reg [7:0] DATA_OUT,
 output DCLK_OUT,
@@ -74,14 +74,15 @@ if(!RST)
 	state <= check_source;
 	byte_counter <= 0;
 	DATA_OUT <= 0;
-	GIVE_ME_ONE_PACKET <= 4'b0000;
 	P_SYNC_OUT <= 0;
+	RD_REQ <= 4'b0000;
 	D_VALID_OUT <= 0;
 	end
 else
 	case(state)
 	check_source:
 		begin
+		D_VALID_OUT <= 0;
 		if(GOT_FULL_PACKET[source_counter])
 			begin
 			state <= fill_header;
@@ -92,23 +93,28 @@ else
 	fill_header:
 		begin
 		DATA_OUT <= header_2d_array[(source_counter<<2) + byte_counter];	// (<<2) = (*4)
-		byte_counter <= byte_counter + 1'b1;
-		if(byte_counter == 8'd0)
+		if(byte_counter < 4)
+			begin
+			byte_counter <= byte_counter + 1'b1;
 			D_VALID_OUT <= 1;
-		else if(byte_counter == 8'd1)						// чтобы ts пакет попал сразу после псевдо-заголовка, запрос на пакет надо выдать здесь
-			GIVE_ME_ONE_PACKET[source_counter] <= 1;
-		else if(byte_counter == 8'd3)
-			state <= forward_packet;
+			end
 		else
-			GIVE_ME_ONE_PACKET[source_counter] <= 0;
+			begin
+			byte_counter <= 0;
+			D_VALID_OUT <= 0;
+			state <= forward_packet;
+			end
 		end
 	forward_packet:
 		begin
-		if(byte_counter < 8'd192)
+		D_VALID_OUT <= RD_REQ[source_counter];
+		DATA_OUT <= DATA_IN_BUS[source_counter];
+		if(byte_counter < 8'd188)
 			begin
-			DATA_OUT <= DATA_IN_BUS[source_counter];
+			
+			RD_REQ[source_counter] <= 1;
 			byte_counter <= byte_counter + 1'b1;
-			if(byte_counter == 8'd4)
+			if(byte_counter == 8'd0)
 				P_SYNC_OUT <= 1;
 			else
 				P_SYNC_OUT <= 0;
@@ -116,10 +122,9 @@ else
 		else
 			begin
 			byte_counter <= 0;
-			D_VALID_OUT <= 0;
+			RD_REQ[source_counter] <= 0;
 			source_counter <= source_counter + 1'b1;
 			state <= check_source;
-			DATA_OUT <= 0;
 			end
 		end
 	endcase

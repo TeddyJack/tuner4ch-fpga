@@ -56,7 +56,7 @@ reclock_and_prepare reclock_and_prepare_0(
 .DCLK(DCLK_0),
 .D_VALID(D_VALID_0),
 .P_SYNC(P_SYNC_0),
-.GIVE_ME_ONE_PACKET(give_me_one_packet[0]),
+.RD_REQ(rd_req[0]),
 
 .GOT_FULL_PACKET(got_full_packet[0]),
 .DATA_OUT(data_out_0)
@@ -70,7 +70,7 @@ reclock_and_prepare reclock_and_prepare_1(
 .DCLK(DCLK_1),
 .D_VALID(D_VALID_1),
 .P_SYNC(P_SYNC_1),
-.GIVE_ME_ONE_PACKET(give_me_one_packet[1]),
+.RD_REQ(rd_req[1]),
 
 .GOT_FULL_PACKET(got_full_packet[1]),
 .DATA_OUT(data_out_1)
@@ -84,7 +84,7 @@ reclock_and_prepare reclock_and_prepare_2(
 .DCLK(DCLK_2),
 .D_VALID(D_VALID_2),
 .P_SYNC(P_SYNC_2),
-.GIVE_ME_ONE_PACKET(give_me_one_packet[2]),
+.RD_REQ(rd_req[2]),
 
 .GOT_FULL_PACKET(got_full_packet[2]),
 .DATA_OUT(data_out_2)
@@ -98,7 +98,7 @@ reclock_and_prepare reclock_and_prepare_3(
 .DCLK(DCLK_3),
 .D_VALID(D_VALID_3),
 .P_SYNC(P_SYNC_3),
-.GIVE_ME_ONE_PACKET(give_me_one_packet[3]),
+.RD_REQ(rd_req[3]),
 
 .GOT_FULL_PACKET(got_full_packet[3]),
 .DATA_OUT(data_out_3)
@@ -119,13 +119,13 @@ source_switch source_switch(
 .SPI_DATA(spi_data),
 .RISING_SS(rising_ss),
 
-.GIVE_ME_ONE_PACKET(give_me_one_packet),
+.RD_REQ(rd_req),
 .DATA_OUT(data_out_54),
 .DCLK_OUT(dclk_out_54),
 .D_VALID_OUT(d_valid_out_54),
 .P_SYNC_OUT(p_sync_out_54)
 );
-wire [3:0] give_me_one_packet;
+wire [3:0] rd_req;
 wire [7:0] data_out_54;
 wire dclk_out_54;
 wire d_valid_out_54;
@@ -225,25 +225,25 @@ end
 led_lighter led_lighter_0(
 .CLK(sys_clk),
 .RST(RST),
-.SIGNAL_IN(give_me_one_packet[0]),
+.SIGNAL_IN(rd_req[0]),
 .LED(LEDS[0])
 );
 led_lighter led_lighter_1(
 .CLK(sys_clk),
 .RST(RST),
-.SIGNAL_IN(give_me_one_packet[1]),
+.SIGNAL_IN(rd_req[1]),
 .LED(LEDS[1])
 );
 led_lighter led_lighter_2(
 .CLK(sys_clk),
 .RST(RST),
-.SIGNAL_IN(give_me_one_packet[2]),
+.SIGNAL_IN(rd_req[2]),
 .LED(LEDS[2])
 );
 led_lighter led_lighter_3(
 .CLK(sys_clk),
 .RST(RST),
-.SIGNAL_IN(give_me_one_packet[3]),
+.SIGNAL_IN(rd_req[3]),
 .LED(LEDS[3])
 );
 

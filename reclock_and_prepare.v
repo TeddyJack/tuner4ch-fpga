@@ -5,7 +5,7 @@ input [7:0] DATA,
 input DCLK,
 input D_VALID,
 input P_SYNC,
-input GIVE_ME_ONE_PACKET,
+input RD_REQ,
 
 output GOT_FULL_PACKET,
 output [7:0] DATA_OUT
@@ -13,62 +13,27 @@ output [7:0] DATA_OUT
 
 wire fifo_wr_req = (P_SYNC | (!sync_lost)) & D_VALID;		// for first-ever alignment
 assign GOT_FULL_PACKET = (fifo_used >= 9'd188);
+
+reg clear_fifo;
+always@(posedge SYS_CLK or negedge RST)
+begin
+if(!RST)
+	clear_fifo <= 0;
+else
+	clear_fifo <= sync_lost & (!P_SYNC) & (!RD_REQ);
+end
+
 input_fifo input_fifo(
-.aclr(!RST | short_sync_lost),
+.aclr((!RST) | clear_fifo),
 .data(DATA),
 .rdclk(SYS_CLK),
-.rdreq(fifo_rd_req),
+.rdreq(RD_REQ),
 .wrclk(DCLK),
 .wrreq(fifo_wr_req),
 .q(DATA_OUT),
 .rdusedw(fifo_used)
 );
 wire [8:0] fifo_used;
-
-reg state;
-parameter idle				= 1'b0;
-parameter read_packet	= 1'b1;
-reg [7:0] read_counter;
-reg fifo_rd_req;
-always@(posedge SYS_CLK or negedge RST)
-begin
-if(!RST)
-	begin
-	state <= idle;
-	read_counter <= 0;
-	fifo_rd_req <= 0;
-	end
-else
-	case(state)
-	idle:
-		if(GIVE_ME_ONE_PACKET)
-			begin
-			state <= read_packet;
-			fifo_rd_req <= 1;
-			read_counter <= read_counter + 1'b1;
-			end
-	read_packet:
-		begin
-		if(read_counter < 8'd188)
-			read_counter <= read_counter + 1'b1;
-		else
-			begin
-			read_counter <= 0;
-			fifo_rd_req <= 0;
-			state <= idle;
-			end
-		end
-	endcase
-end
-
-rising_edge_detect rising_edge_detect(
-.CLOCK(SYS_CLK),
-.RESET(RST),
-.LONG_SIGNAL(sync_lost),
-.RISING_EDGE_PULSE(short_sync_lost)
-);
-wire short_sync_lost;
-
 
 reg [7:0] psync_byte_counter;
 reg sync_lost;
