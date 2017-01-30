@@ -6,10 +6,8 @@ module source_switch(		// здесь сформировать give_me_one_packet
 input SYS_CLK,
 input RST,
 input [3:0] GOT_FULL_PACKET,
-input [7:0] DATA_IN_0,
-input [7:0] DATA_IN_1,
-input [7:0] DATA_IN_2,
-input [7:0] DATA_IN_3,
+
+input [31:0] DATA_IN_BUS,
 
 input [7:0] SPI_ADDRESS,
 input [7:0] SPI_DATA,
@@ -52,11 +50,15 @@ end
 
 
 assign DCLK_OUT = SYS_CLK;
-wire [7:0] DATA_IN_BUS [3:0];
-assign DATA_IN_BUS[0]	= DATA_IN_0;
-assign DATA_IN_BUS[1]	= DATA_IN_1;
-assign DATA_IN_BUS[2]	= DATA_IN_2;
-assign DATA_IN_BUS[3]	= DATA_IN_3;
+wire [7:0] DATA_IN [3:0];
+
+genvar i;
+generate
+for(i=0; i<4; i=i+1)
+	begin: wow
+	assign DATA_IN[i] = DATA_IN_BUS[(8*i+7):(8*i)];
+	end
+endgenerate
 
 reg [1:0] state;
 parameter [1:0] check_source		= 2'h0;
@@ -108,7 +110,7 @@ else
 	forward_packet:
 		begin
 		D_VALID_OUT <= RD_REQ[source_counter];
-		DATA_OUT <= DATA_IN_BUS[source_counter];
+		DATA_OUT <= DATA_IN[source_counter];
 		if(byte_counter < 8'd188)
 			begin
 			

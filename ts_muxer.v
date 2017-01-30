@@ -7,25 +7,10 @@ input SCLK,
 input nSS,
 input MOSI,
 
-input [7:0] DATA_0,
-input DCLK_0,
-input D_VALID_0,
-input P_SYNC_0,
-
-input [7:0] DATA_1,
-input DCLK_1,
-input D_VALID_1,
-input P_SYNC_1,
-
-input [7:0] DATA_2,
-input DCLK_2,
-input D_VALID_2,
-input P_SYNC_2,
-
-input [7:0] DATA_3,
-input DCLK_3,
-input D_VALID_3,
-input P_SYNC_3,
+input [31:0] DATA,
+input [3:0] DCLK,
+input [3:0] D_VALID,
+input [3:0] P_SYNC,
 
 output [7:0] DATA_OUT,		// pseudo TS ouput
 output DCLK_OUT,
@@ -49,61 +34,32 @@ pll_for_ts_muxer pll_for_ts_muxer(
 wire sys_clk;
 wire clk_27;
 
-reclock_and_prepare reclock_and_prepare_0(
-.SYS_CLK(sys_clk),
-.RST(RST),
-.DATA(DATA_0),
-.DCLK(DCLK_0),
-.D_VALID(D_VALID_0),
-.P_SYNC(P_SYNC_0),
-.RD_REQ(rd_req[0]),
-
-.GOT_FULL_PACKET(got_full_packet[0]),
-.DATA_OUT(data_out_0)
-);
-wire [7:0] data_out_0;
-
-reclock_and_prepare reclock_and_prepare_1(
-.SYS_CLK(sys_clk),
-.RST(RST),
-.DATA(DATA_1),
-.DCLK(DCLK_1),
-.D_VALID(D_VALID_1),
-.P_SYNC(P_SYNC_1),
-.RD_REQ(rd_req[1]),
-
-.GOT_FULL_PACKET(got_full_packet[1]),
-.DATA_OUT(data_out_1)
-);
-wire [7:0] data_out_1;
-
-reclock_and_prepare reclock_and_prepare_2(
-.SYS_CLK(sys_clk),
-.RST(RST),
-.DATA(DATA_2),
-.DCLK(DCLK_2),
-.D_VALID(D_VALID_2),
-.P_SYNC(P_SYNC_2),
-.RD_REQ(rd_req[2]),
-
-.GOT_FULL_PACKET(got_full_packet[2]),
-.DATA_OUT(data_out_2)
-);
-wire [7:0] data_out_2;
-
-reclock_and_prepare reclock_and_prepare_3(
-.SYS_CLK(sys_clk),
-.RST(RST),
-.DATA(DATA_3),
-.DCLK(DCLK_3),
-.D_VALID(D_VALID_3),
-.P_SYNC(P_SYNC_3),
-.RD_REQ(rd_req[3]),
-
-.GOT_FULL_PACKET(got_full_packet[3]),
-.DATA_OUT(data_out_3)
-);
-wire [7:0] data_out_3;
+genvar i;
+generate
+for(i=0; i<4; i=i+1)
+	begin: wow
+	reclock_and_prepare reclock_and_prepare(
+	.SYS_CLK(sys_clk),
+	.RST(RST),
+	.DATA(DATA[(8*i+7):(8*i)]),
+	.DCLK(DCLK[i]),
+	.D_VALID(D_VALID[i]),
+	.P_SYNC(P_SYNC[i]),
+	.RD_REQ(rd_req[i]),
+	
+	.GOT_FULL_PACKET(got_full_packet[i]),
+	.DATA_OUT(data_out_bus[(8*i+7):(8*i)])
+	);
+	
+	led_lighter led_lighter(
+	.CLK(sys_clk),
+	.RST(RST),
+	.SIGNAL_IN(rd_req[i]),
+	.LED(LEDS[i])
+	);
+	end
+endgenerate
+wire [31:0] data_out_bus;
 
 
 wire [3:0] got_full_packet;
@@ -111,10 +67,7 @@ source_switch source_switch(
 .SYS_CLK(sys_clk),
 .RST(RST),
 .GOT_FULL_PACKET(got_full_packet),
-.DATA_IN_0(data_out_0),
-.DATA_IN_1(data_out_1),
-.DATA_IN_2(data_out_2),
-.DATA_IN_3(data_out_3),
+.DATA_IN_BUS(data_out_bus),
 .SPI_ADDRESS(spi_address),
 .SPI_DATA(spi_data),
 .RISING_SS(rising_ss),
@@ -169,7 +122,7 @@ wire [7:0] spi_address;
 wire [7:0] spi_data;
 wire rising_ss;
 
-select_output select_output(
+select_output select_output(	// this module chooses, which stream goes to ASI output
 .CLK(sys_clk),
 .RST(RST),
 .SPI_ADDRESS(spi_address),
@@ -178,13 +131,10 @@ select_output select_output(
 
 .SW(SW),
 
-.DATA_IN_0(DATA_0),
-.DATA_IN_1(DATA_1),
-.DATA_IN_2(DATA_2),
-.DATA_IN_3(/*DATA_3*/data_out_54),
-.DCLK_BUS({/*DCLK_3*/dclk_out_54,DCLK_2,DCLK_1,DCLK_0}),
-.D_VALID_BUS({/*D_VALID_3*/d_valid_out_54,D_VALID_2,D_VALID_1,D_VALID_0}),
-.P_SYNC_BUS({/*P_SYNC_3*/p_sync_out_54,P_SYNC_2,P_SYNC_1,P_SYNC_0}),
+.DATA_IN_BUS({data_out_54,DATA[23:0]}),
+.DCLK_BUS({dclk_out_54,DCLK[2:0]}),
+.D_VALID_BUS({d_valid_out_54,D_VALID[2:0]}),
+.P_SYNC_BUS({p_sync_out_54,P_SYNC[2:0]}),
 
 .DATA_OUT(data_from_selector),
 .DCLK_OUT(dclk_from_selector),
@@ -221,30 +171,5 @@ if(!RST)
 else
 	D_VALID_OUT_ASI <= !fifo_asi_empty;
 end
-
-led_lighter led_lighter_0(
-.CLK(sys_clk),
-.RST(RST),
-.SIGNAL_IN(rd_req[0]),
-.LED(LEDS[0])
-);
-led_lighter led_lighter_1(
-.CLK(sys_clk),
-.RST(RST),
-.SIGNAL_IN(rd_req[1]),
-.LED(LEDS[1])
-);
-led_lighter led_lighter_2(
-.CLK(sys_clk),
-.RST(RST),
-.SIGNAL_IN(rd_req[2]),
-.LED(LEDS[2])
-);
-led_lighter led_lighter_3(
-.CLK(sys_clk),
-.RST(RST),
-.SIGNAL_IN(rd_req[3]),
-.LED(LEDS[3])
-);
 
 endmodule
