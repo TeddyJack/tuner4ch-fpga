@@ -96,7 +96,7 @@ out_fifo out_fifo(
 .rdempty(fifo_empty)
 );
 wire fifo_empty;
-assign DCLK_OUT = clk_27;
+assign DCLK_OUT = !clk_27;
 
 always@(posedge clk_27 or negedge RST)
 begin
@@ -160,7 +160,7 @@ out_fifo out_fifo_asi(
 .rdempty(fifo_asi_empty)
 );
 wire fifo_asi_empty;
-assign DCLK_OUT_ASI = clk_27;
+assign DCLK_OUT_ASI = DCLK_OUT;
 wire [8:0] psync_and_dout_asi;
 assign DATA_OUT_ASI = psync_and_dout_asi[7:0];
 

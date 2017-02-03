@@ -15,12 +15,17 @@ input RISING_SS,
 
 output reg [3:0] RD_REQ,
 
-output reg [7:0] DATA_OUT,
+output [7:0] DATA_OUT,
 output DCLK_OUT,
-output reg D_VALID_OUT,
-output reg P_SYNC_OUT
+output D_VALID_OUT,
+output reg P_SYNC_OUT,
 
+output [1:0] state_mon,
+output error_detector
 );
+
+assign state_mon = state;
+assign error_detector = ((byte_counter == 8'd5) && (DATA_OUT != 8'h47)) || ((byte_counter == 8'd1) && (DATA_OUT == 8'h47));
 
 //reg [7:0] header_3d_array [3:0][3:0];		// 
 //reg [7:0] src;										// число, номер источника
@@ -67,6 +72,10 @@ parameter [1:0] forward_packet	= 2'h2;
 
 reg [1:0] source_counter;
 reg [7:0] byte_counter;
+reg d_valid_header;
+assign D_VALID_OUT = d_valid_header || RD_REQ[source_counter];
+assign DATA_OUT = (state == fill_header) ? (data_header) : (DATA_IN[source_counter]);
+reg [7:0] data_header;
 
 always@(posedge SYS_CLK or negedge RST)
 begin
@@ -75,16 +84,15 @@ if(!RST)
 	source_counter <= 0;
 	state <= check_source;
 	byte_counter <= 0;
-	DATA_OUT <= 0;
 	P_SYNC_OUT <= 0;
 	RD_REQ <= 4'b0000;
-	D_VALID_OUT <= 0;
+	d_valid_header <= 0;
+	data_header <= 0;
 	end
 else
 	case(state)
 	check_source:
 		begin
-		D_VALID_OUT <= 0;
 		if(GOT_FULL_PACKET[source_counter])
 			begin
 			state <= fill_header;
@@ -94,29 +102,25 @@ else
 		end
 	fill_header:
 		begin
-		DATA_OUT <= header_2d_array[(source_counter<<2) + byte_counter];	// (<<2) = (*4)
 		if(byte_counter < 4)
 			begin
+			data_header <= header_2d_array[(source_counter<<2) + byte_counter];
+			d_valid_header <= 1;
 			byte_counter <= byte_counter + 1'b1;
-			D_VALID_OUT <= 1;
 			end
 		else
 			begin
-			byte_counter <= 0;
-			D_VALID_OUT <= 0;
+			d_valid_header <= 0;
 			state <= forward_packet;
 			end
 		end
 	forward_packet:
 		begin
-		D_VALID_OUT <= RD_REQ[source_counter];
-		DATA_OUT <= DATA_IN[source_counter];
-		if(byte_counter < 8'd188)
+		if(byte_counter < 8'd192)
 			begin
-			
 			RD_REQ[source_counter] <= 1;
 			byte_counter <= byte_counter + 1'b1;
-			if(byte_counter == 8'd0)
+			if(byte_counter == 8'd4)
 				P_SYNC_OUT <= 1;
 			else
 				P_SYNC_OUT <= 0;

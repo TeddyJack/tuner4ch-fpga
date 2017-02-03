@@ -17,3 +17,8 @@ derive_clock_uncertainty
 # tco constraints
 
 # tpd constraints
+
+# ignore paths
+set_false_path -from [get_clocks DCLK[0]] -to [get_clocks pll_for_ts_muxer|altpll_component|auto_generated|pll1|clk[1]]
+set_false_path -from [get_clocks DCLK[1]] -to [get_clocks pll_for_ts_muxer|altpll_component|auto_generated|pll1|clk[1]]
+set_false_path -from [get_clocks DCLK[2]] -to [get_clocks pll_for_ts_muxer|altpll_component|auto_generated|pll1|clk[1]]
