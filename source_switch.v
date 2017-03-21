@@ -9,9 +9,8 @@ input [3:0] GOT_FULL_PACKET,
 
 input [31:0] DATA_IN_BUS,
 
-input [7:0] SPI_ADDRESS,
-input [7:0] SPI_DATA,
-input RISING_SS,
+output [3:0] header_byte_addr,
+input [7:0] header_byte,
 
 output reg [3:0] RD_REQ,
 
@@ -24,35 +23,10 @@ output [1:0] state_mon,
 output error_detector
 );
 
+assign header_byte_addr = (source_counter<<2) + byte_counter[3:0];
+
 assign state_mon = state;
 assign error_detector = ((byte_counter == 8'd5) && (DATA_OUT != 8'h47)) || ((byte_counter == 8'd1) && (DATA_OUT == 8'h47));
-
-//reg [7:0] header_3d_array [3:0][3:0];		// 
-//reg [7:0] src;										// число, номер источника
-//initial
-//begin
-//for(src=0; src<4; src=src+1'b1)
-//	begin
-//	header_3d_array[src][0] = src;			// PLP ID
-//	header_3d_array[src][1] = src + 8'd2;	// stream source
-//	header_3d_array[src][2] = 8'h00;			// reserved
-//	header_3d_array[src][3] = 8'h00;			// reserved
-//	end
-//end
-reg [7:0] header_2d_array [15:0];		// 
-reg [7:0] src;										// число, номер источника
-initial
-begin
-for(src=0; src<4; src=src+1'b1)
-	begin
-	header_2d_array[(src<<2) + 2'h0] = src;			// PLP ID				// (<<2) = (*4)
-	header_2d_array[(src<<2) + 2'h1] = src + 8'd2;	// stream source
-	header_2d_array[(src<<2) + 2'h2] = 8'h00;			// reserved
-	header_2d_array[(src<<2) + 2'h3] = 8'h00;			// reserved
-	end
-end
-
-
 
 assign DCLK_OUT = SYS_CLK;
 wire [7:0] DATA_IN [3:0];
@@ -104,7 +78,7 @@ else
 		begin
 		if(byte_counter < 4)
 			begin
-			data_header <= header_2d_array[(source_counter<<2) + byte_counter];
+			data_header <= header_byte;
 			d_valid_header <= 1;
 			byte_counter <= byte_counter + 1'b1;
 			end
@@ -135,12 +109,5 @@ else
 		end
 	endcase
 end
-
-always@(posedge SYS_CLK)
-begin
-if(RISING_SS && (SPI_ADDRESS >= `ADDR_HEADR_FIRST) && (SPI_ADDRESS <= `ADDR_HEADR_LAST))
-	header_2d_array[SPI_ADDRESS-`ADDR_HEADR_FIRST] <= SPI_DATA;
-end
-
 
 endmodule

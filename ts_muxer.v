@@ -48,7 +48,8 @@ for(i=0; i<4; i=i+1)
 	.RD_REQ(rd_req[i]),
 	
 	.GOT_FULL_PACKET(got_full_packet[i]),
-	.DATA_OUT(data_out_bus[(8*i+7):(8*i)])
+	.DATA_OUT(data_out_bus[(8*i+7):(8*i)]),
+	.BYTERATE(byterate_bus[(32*i+31):(32*i)])
 	);
 	
 	led_lighter led_lighter(
@@ -60,6 +61,7 @@ for(i=0; i<4; i=i+1)
 	end
 endgenerate
 wire [31:0] data_out_bus;
+wire [127:0] byterate_bus;
 
 
 wire [3:0] got_full_packet;
@@ -68,9 +70,8 @@ source_switch source_switch(
 .RST(RST),
 .GOT_FULL_PACKET(got_full_packet),
 .DATA_IN_BUS(data_out_bus),
-.SPI_ADDRESS(spi_address),
-.SPI_DATA(spi_data),
-.RISING_SS(rising_ss),
+.header_byte_addr(header_byte_addr),
+.header_byte(header_byte),
 
 .RD_REQ(rd_req),
 .DATA_OUT(data_out_54),
@@ -115,19 +116,33 @@ SPI SPI(
 
 .SPI_ADDRESS(spi_address),
 .SPI_DATA(spi_data),
-.RISING_SS(rising_ss),
-.MISO(MISO)
+.SPI_ENA(spi_ena),
+.MISO(MISO),
+.DATA_IN(data_to_miso)
 );
-wire [7:0] spi_address;
+wire [6:0] spi_address;
 wire [7:0] spi_data;
-wire rising_ss;
+wire spi_ena;
 
-select_output select_output(	// this module chooses, which stream goes to ASI output
+SPI_maintain SPI_maintain(
 .CLK(sys_clk),
 .RST(RST),
 .SPI_ADDRESS(spi_address),
 .SPI_DATA(spi_data),
-.RISING_SS(rising_ss),
+.SPI_ENA(spi_ena),
+
+.header_byte_addr(header_byte_addr),
+.header_byte(header_byte),
+.byterate_bus(byterate_bus),
+.DATA_TO_MISO(data_to_miso)
+);
+wire [3:0] header_byte_addr;
+wire [7:0] header_byte;
+wire [7:0] data_to_miso;
+
+select_output select_output(	// this module chooses, which stream goes to ASI output
+.CLK(sys_clk),
+.RST(RST),
 
 .SW(SW),
 

@@ -1,3 +1,5 @@
+`include "defines.v"
+
 module reclock_and_prepare(
 input SYS_CLK,
 input RST,
@@ -8,7 +10,8 @@ input P_SYNC,
 input RD_REQ,
 
 output GOT_FULL_PACKET,
-output [7:0] DATA_OUT
+output [7:0] DATA_OUT,
+output reg [31:0] BYTERATE
 );
 
 wire fifo_wr_req = (P_SYNC | (!sync_lost)) & D_VALID;		// for first-ever alignment
@@ -76,6 +79,38 @@ else
 			end
 		end
 	endcase
+end
+
+reg [31:0] counter;
+always@(posedge SYS_CLK or negedge RST)
+begin
+if(!RST)
+	begin
+	BYTERATE <= 0;
+	counter <= 0;
+	end
+else
+	begin
+	if(counter < (`ONE_SECOND_LIMIT-1'b1))
+		counter <= counter + 1'b1;
+	else
+		begin
+		counter <= 0;
+		BYTERATE <= bytes_per_sec;
+		end
+	end
+end
+
+reg [31:0] bytes_per_sec;
+wire reset_counting = (!RST) | (counter == 0) | (sync_lost);
+always@(posedge DCLK or posedge reset_counting)
+begin
+if(reset_counting)
+	begin
+	bytes_per_sec <= 0;
+	end
+else if(fifo_wr_req)
+	bytes_per_sec <= bytes_per_sec + 1'b1;
 end
 
 endmodule
