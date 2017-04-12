@@ -15,7 +15,6 @@ input [7:0] header_byte,
 output reg [3:0] RD_REQ,
 
 output [7:0] DATA_OUT,
-output DCLK_OUT,
 output D_VALID_OUT,
 output reg P_SYNC_OUT,
 
@@ -26,9 +25,8 @@ output error_detector
 assign header_byte_addr = (source_counter<<2) + byte_counter[3:0];
 
 assign state_mon = state;
-assign error_detector = ((byte_counter == 8'd5) && (DATA_OUT != 8'h47)) || ((byte_counter == 8'd1) && (DATA_OUT == 8'h47));
+assign error_detector = ((byte_counter == 8'd1) && (DATA_OUT == 8'h47));
 
-assign DCLK_OUT = SYS_CLK;
 wire [7:0] DATA_IN [3:0];
 
 genvar i;

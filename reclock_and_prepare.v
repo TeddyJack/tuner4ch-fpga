@@ -36,7 +36,7 @@ input_fifo input_fifo(
 .q(DATA_OUT),
 .rdusedw(fifo_used)
 );
-wire [8:0] fifo_used;
+wire [9:0] fifo_used;
 
 reg [7:0] psync_byte_counter;
 reg sync_lost;
