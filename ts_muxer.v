@@ -29,6 +29,7 @@ assign DCLK_OUT = !clk_27;				// inversion of clock. not sure about it
 assign DCLK_OUT_ASI = DCLK_OUT;
 assign D_VALID_OUT_ASI = D_VALID_OUT;
 assign DATA_OUT_ASI = DATA_OUT;
+wire reset = RST;
 
 pll_for_ts_muxer pll_for_ts_muxer(
 .inclk0(CLK_IN),
@@ -42,12 +43,13 @@ for(i=0; i<4; i=i+1)
 	begin: wow
 	reclock_and_prepare reclock_and_prepare(
 	.SYS_CLK(clk_27),
-	.RST(RST),
+	.RST(reset),
 	.DATA(DATA[(8*i+7):(8*i)]),
 	.DCLK(DCLK[i]),
 	.D_VALID(D_VALID[i]),
 	.P_SYNC(P_SYNC[i]),
 	.RD_REQ(rd_req[i]),
+	.input_off_on(inputs_off_on[i]),
 	
 	.GOT_FULL_PACKET(got_full_packet[i]),
 	.DATA_OUT(data_out_bus[(8*i+7):(8*i)]),
@@ -56,7 +58,7 @@ for(i=0; i<4; i=i+1)
 	
 	led_lighter led_lighter(
 	.CLK(clk_27),
-	.RST(RST),
+	.RST(reset),
 	.SIGNAL_IN(rd_req[i]),
 	.LED(LEDS[i])
 	);
@@ -69,7 +71,7 @@ wire [127:0] byterate_bus;
 wire [3:0] got_full_packet;
 source_switch source_switch(
 .SYS_CLK(clk_27),
-.RST(RST),
+.RST(reset),
 .GOT_FULL_PACKET(got_full_packet),
 .DATA_IN_BUS(data_out_bus),
 .header_byte_addr(header_byte_addr),
@@ -84,7 +86,7 @@ wire [3:0] rd_req;
 
 SPI SPI(
 .CLK(clk_27),
-.RST(RST),
+.RST(reset),
 .SCLK(SCLK),
 .MOSI(MOSI),
 .SS(nSS),
@@ -101,7 +103,7 @@ wire spi_ena;
 
 SPI_maintain SPI_maintain(
 .CLK(clk_27),
-.RST(RST),
+.RST(reset),
 .SPI_ADDRESS(spi_address),
 .SPI_DATA(spi_data),
 .SPI_ENA(spi_ena),
@@ -109,11 +111,12 @@ SPI_maintain SPI_maintain(
 .header_byte_addr(header_byte_addr),
 .header_byte(header_byte),
 .byterate_bus(byterate_bus),
-.DATA_TO_MISO(data_to_miso)
+.DATA_TO_MISO(data_to_miso),
+.inputs_off_on(inputs_off_on)
 );
 wire [3:0] header_byte_addr;
 wire [7:0] header_byte;
 wire [7:0] data_to_miso;
-
+wire [3:0] inputs_off_on;
 
 endmodule

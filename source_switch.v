@@ -105,6 +105,8 @@ else
 			state <= check_source;
 			end
 		end
+	default:
+		state <= check_source;
 	endcase
 end
 

@@ -11,7 +11,8 @@ output reg [7:0] DATA_TO_MISO,
 input [3:0] header_byte_addr,
 output [7:0] header_byte,
 
-input [127:0] byterate_bus
+input [127:0] byterate_bus,
+output reg [3:0] inputs_off_on
 );
 
 /*
@@ -46,12 +47,17 @@ for(src=0; src<4; src=src+1'b1)
 	end
 end
 
-always@(posedge CLK)
+// Receive and apply settings from Kulakoff
+always@(posedge CLK or negedge RST)
 begin
-if(SPI_ENA)
+if(!RST)
+	inputs_off_on <= 0;
+else if(SPI_ENA)
 	begin
 	if((SPI_ADDRESS >= `ADDR_HEADR_FIRST) && (SPI_ADDRESS <= `ADDR_HEADR_LAST))
 		header_2d_array[SPI_ADDRESS-`ADDR_HEADR_FIRST] <= SPI_DATA;
+	else if(SPI_ADDRESS == `ADDR_ENA_INPUT)
+		inputs_off_on <= SPI_DATA[3:0];
 	end
 end
 
@@ -76,11 +82,13 @@ endgenerate
 //	end
 //endgenerate
 
-
+// Receive request and send status to Kulakoff
 always@(posedge CLK)
 begin
 if((SPI_ADDRESS >= `ADDR_BRATE_FIRST) && (SPI_ADDRESS <= `ADDR_BRATE_LAST))
 	DATA_TO_MISO <= byterate_array[SPI_ADDRESS-`ADDR_BRATE_FIRST];
+else if(SPI_ADDRESS == `ADDR_ENA_INPUT)
+	DATA_TO_MISO <= {4'b0,inputs_off_on};
 end
 
 endmodule

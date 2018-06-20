@@ -8,6 +8,7 @@ input DCLK,
 input D_VALID,
 input P_SYNC,
 input RD_REQ,
+input input_off_on,
 
 output GOT_FULL_PACKET,
 output [7:0] DATA_OUT,
@@ -26,8 +27,10 @@ else
 	clear_fifo <= sync_lost & (!P_SYNC) & (!RD_REQ);
 end
 
+wire reset = RST & input_off_on & (!clear_fifo);
+
 input_fifo input_fifo(
-.aclr((!RST) | clear_fifo),
+.aclr(!reset),
 .data(DATA),
 .rdclk(SYS_CLK),
 .rdreq(RD_REQ),
@@ -43,9 +46,9 @@ reg sync_lost;
 reg state_of_sync;
 parameter wait_for_psync	= 1'b0;
 parameter count				= 1'b1;
-always@(posedge DCLK or negedge RST)
+always@(posedge DCLK or negedge reset)
 begin
-if(!RST)
+if(!reset)
 	begin
 	sync_lost <= 1;
 	state_of_sync <= wait_for_psync;
